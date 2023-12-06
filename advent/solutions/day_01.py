@@ -6,7 +6,6 @@ from pathlib import Path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 script_path = Path(SCRIPT_DIR)
 src_dir = script_path.parent.parent.absolute()
-print("src_dir", src_dir)
 sys.path.insert(0, str(src_dir))
 
 

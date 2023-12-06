@@ -9,7 +9,7 @@ src_dir = script_path.parent.parent.absolute()
 sys.path.insert(0, str(src_dir))
 
 # from advent.solutions.day01 import extract__number
-from advent.solutions.day_02 import find_number_beginning, find_color_end, ExtractColorResult, HandResult, is_hand_possible, is_game_possible, cube_power_set
+from advent.solutions.day_02 import find_color_end, ExtractColorResult, HandResult, is_hand_possible, is_game_possible, cube_power_set, find_number_beginning
 import pytest
 
 

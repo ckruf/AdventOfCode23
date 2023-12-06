@@ -11,36 +11,15 @@ from pathlib import Path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 script_path = Path(SCRIPT_DIR)
 src_dir = script_path.parent.parent.absolute()
-print("src_dir", src_dir)
 sys.path.insert(0, str(src_dir))
 
 
 import time
 from typing import NamedTuple, Optional
-from advent.common import yield_lines, INPUTS_FOLDER
+from advent.common import yield_lines, INPUTS_FOLDER, find_number_end, find_number_beginning
 
 INPUT_FILE_NAME = "2.txt"
 INPUT_FILE_PATH = Path(INPUTS_FOLDER, INPUT_FILE_NAME)
-
-
-def find_number_beginning(input: str, index: int) -> int:
-    """
-    Given a string, and an index at which a (possibly multi-digit) 
-    number ends, return the index where it starts
-    """
-    while input[index - 1].isdigit():
-        index -= 1
-    return index
-
-
-def find_number_end(input: str, index: int) -> int:
-    """
-    Given a string, and an index at which a (possibly multi digit) number 
-    starts, return the index at which it ends.
-    """
-    while input[index].isdigit():
-        index += 1
-    return index
 
 
 class ExtractColorResult(NamedTuple):
