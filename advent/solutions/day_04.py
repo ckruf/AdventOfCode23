@@ -10,10 +10,11 @@ sys.path.insert(0, str(src_dir))
 
 
 import re
-from advent.common import yield_lines, INPUTS_FOLDER
+from advent.common import yield_lines, INPUTS_FOLDER, TEST_INPUTS_FOLDER
 
 INPUT_FILE_NAME = "4.txt"
 INPUT_FILE_PATH = Path(INPUTS_FOLDER, INPUT_FILE_NAME)
+TEST_INPUT_FILE_PATH = Path(TEST_INPUTS_FOLDER, INPUT_FILE_NAME)
 
 
 def count_duplicate_numbers(scratchcard: str) -> int:
@@ -37,5 +38,34 @@ def main_part_one(input_file_path: str | Path = INPUT_FILE_PATH):
     return total
 
 
+def count_points_for_every_card(input_file_path: str | Path) -> dict[int, int]:
+    points = {}
+    for scratchcard in yield_lines(input_file_path):
+        all_numbers = re.findall(r'\d+', scratchcard)
+        card_id = int(all_numbers[0])
+        duplicate_count = 0
+        unique_numbers = set()
+        for i in range(1, len(all_numbers)):
+            if all_numbers[i] in unique_numbers:
+                duplicate_count += 1
+            else:
+                unique_numbers.add(all_numbers[i])
+        points[card_id] = duplicate_count
+    return points
+
+
+def count_all_cards(input_file_path: str | Path) -> int:
+    all_card_points = count_points_for_every_card(input_file_path)
+    total = 0
+    all_cards = list(reversed(all_card_points.keys()))
+    while all_cards:
+        current_card = all_cards.pop()
+        total += 1
+        current_card_points = all_card_points[current_card]
+        for i in range(current_card + 1, current_card_points + current_card + 1):
+            all_cards.append(i)
+    return total
+
+
 if __name__ == "__main__":
-    main_part_one()
+    print(count_all_cards(INPUT_FILE_PATH))
