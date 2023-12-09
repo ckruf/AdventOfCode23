@@ -1,3 +1,13 @@
+"""
+NOTE: this problem deals with ranges. ALL RANGES ARE REPRESENTED AS INCLUSIVE.
+THERE IS NO OVERLAP BETWEEN RANGES.
+
+So if we have f(x) = x + 2 act on, let' say, 50-97, and the next function
+g(x) = x - 48 acts on a range of length two, immediately after the end of f(x)
+range, then that would be represented as 98-99. The end of one range and 
+the start of the next range ARE NEVER THE SAME NUMBER.
+Ranges which immediately follow one another have a differene of 1.
+"""
 from __future__ import annotations
 
 import sys
@@ -22,6 +32,18 @@ TEST_INPUT_FILE_PATH = Path(TEST_INPUTS_FOLDER, INPUT_FILE_NAME)
 
 @dataclass(slots=True)
 class FunctionRange:
+    """
+    Class which represents a range, on which a linear function acts.
+    For example, if the function f(x) = x-4 acts on the range 10-15, then
+    this would be represented as FunctionRange(10, 15, -4). This would be
+    a 'mapping range'. However, the class can also be used as an 'output range'.
+    Continuing with the same example, the output range would be (14, 19, -4).
+    Because when we apply the function f(x) = x-4 on the range 10-15, the 
+    range of possible outputs is 14-19. The last argument remains the same.
+    So it is context dependent - for a mapping range, the offset is the 
+    offset that is going to be applied, and for an output range, the offset
+    is the offset that has been applied. 
+    """
     range_start: int
     range_end: int
     offset: int
@@ -33,26 +55,24 @@ class FunctionRange:
         source_range_start: int,
         range_length: int
     ):
+        """
+        Create a FunctionRange instance, representing a mapping range, from the
+        AoC puzzle input.
+        """
         range_start = source_range_start
         range_end = source_range_start + range_length - 1
         offset = destination_range_start - source_range_start
         return cls(range_start, range_end, offset)
-    
-    def __str__(self):
-        return f"Range(range_start={self.range_start:,}, range_end={self.range_end:,}, offset={self.offset:,})"
-    
-    def __repr__(self):
-        return f"Range(range_start={self.range_start:,}, range_end={self.range_end:,}, offset={self.offset:,})"
 
 
 @dataclass(slots=True)
 class Mapper:
     input: str
     output: str
-    function_ranges: list[FunctionRange]
+    mapping_ranges: list[FunctionRange]
 
     def map(self, source_value: int) -> int:
-        for range in self.function_ranges:
+        for range in self.mapping_ranges:
             if range.range_start <= source_value <= range.range_end:
                 return source_value + range.offset
         return source_value
@@ -61,37 +81,49 @@ class Mapper:
             self,
             input_ranges: list[FunctionRange]
     ) -> list[FunctionRange]:
+        """
+        Given a list of input ranges, compute the possible output ranges
+        obtained after the application of mapping functions.
+
+        For example, if we have input ranges of 55-67 and 79-92, and 
+        we have two mappings, f(x) = x + 2 in the range 50-97 and
+        g(x) = x - 48 in the range 90-99, then the possible output ranges
+        are 57-69 and and 81-94. 
+
+        This is a simple example, because both input ranges are covered by 
+        a single output range, but it can get much more complex.
+        """
         output_ranges: list[FunctionRange] = []
 
         for input_range in input_ranges:
             input_sub_range_start = input_range.range_start
 
-            for function_range in self.function_ranges:
+            for mapping_range in self.mapping_ranges:
                 if (
-                    function_range.range_start <= input_sub_range_start < function_range.range_end  # input range start fits into function range
-                    or function_range.range_start <= input_range.range_end <= function_range.range_end  # input range end fits into function range
-                    or (input_sub_range_start <= function_range.range_start and input_range.range_end >= function_range.range_end)  # input range covers the function range entirely
+                    mapping_range.range_start <= input_sub_range_start <= mapping_range.range_end  # input range start fits into function range
+                    or mapping_range.range_start <= input_range.range_end <= mapping_range.range_end  # input range end fits into function range
+                    or (input_sub_range_start <= mapping_range.range_start and input_range.range_end >= mapping_range.range_end)  # input range covers the function range entirely
                 ):
-                    if input_sub_range_start < function_range.range_start:
+                    if input_sub_range_start < mapping_range.range_start:
                         unmapped_range = FunctionRange(
                             input_sub_range_start,
-                            function_range.range_start,
+                            mapping_range.range_start,
                             0
                         )
                         output_ranges.append(unmapped_range)
 
-                    overlap_start = max(input_range.range_start, function_range.range_start)
-                    overlap_end = min(input_range.range_end, function_range.range_end)
+                    overlap_start = max(input_range.range_start, mapping_range.range_start)
+                    overlap_end = min(input_range.range_end, mapping_range.range_end)
 
-                    output_range_start = overlap_start + function_range.offset
-                    output_range_end = overlap_end + function_range.offset
+                    output_range_start = overlap_start + mapping_range.offset
+                    output_range_end = overlap_end + mapping_range.offset
                     output_range = FunctionRange(
                         output_range_start,
                         output_range_end,
-                        function_range.offset
+                        mapping_range.offset
                     )
                     output_ranges.append(output_range)
-                    input_sub_range_start = overlap_end
+                    input_sub_range_start = overlap_end + 1
                     if input_sub_range_start >= input_range.range_end:
                         break
 
@@ -108,8 +140,8 @@ class Mapper:
 
 def get_mapper_sequence(mappers_input: list[str]) -> list[Mapper]:
     """
-    Given the puzzle text input, create Mapper instances for each map provided
-    in the file.
+    Given the puzzle text input, create a sequence of Mapper instances
+    for each map provided in the file.
 
     Assumptions:
     - maps are titled with 'foo-to-bar map', where foo and bar can be string
@@ -180,6 +212,10 @@ def main_part_one(puzzle_input_file_path: str | Path = INPUT_FILE_PATH) -> int:
 
 
 def get_seed_ranges(puzzle_input: list[str]) -> list[FunctionRange]:
+    """
+    Given the puzzle input, represent the possible seed values as 
+    function range instances.
+    """
     for line in puzzle_input:
         if line.startswith("seeds:"):
             stringified_numbers = re.findall(r"\b\d+\b", line)
@@ -208,15 +244,19 @@ def brute_part_two(puzzle_input_file_path: str | Path = INPUT_FILE_PATH) -> None
     seed_numbers: list[int] = []
     for i in range(0, len(seed_data), 2):
         seed_numbers.extend(j for j in range(seed_data[i], seed_data[i]+seed_data[i+1]))
-    locations = [apply_mappers(seed, mappers) for seed in seed_numbers]
-    locations.sort()
-    print("sorted locations: ", locations)
-    min_location = min(locations)
-    print("min location: ", min_location)
-    print("\n" * 2)
+    values = seed_numbers
+    for mapper in mappers:
+        values = [mapper.map(value) for value in values]
+        print(f"for {mapper.input}-to-{mapper.output}, possible values are:")
+        values.sort()
+        print(values)
+    print("\n")
 
 
 def main_part_two(puzzle_input_file_path: str | Path = INPUT_FILE_PATH) -> int:
+    """
+    Smart solution for part two
+    """
     puzzle_input = read_file_to_list_of_lines(puzzle_input_file_path)
     seed_ranges = get_seed_ranges(puzzle_input)
     seed_ranges.sort(key=lambda x: x.range_start)
@@ -225,12 +265,14 @@ def main_part_two(puzzle_input_file_path: str | Path = INPUT_FILE_PATH) -> int:
     ranges = seed_ranges
     for mapper in mappers:
         ranges = mapper.compute_output_ranges(ranges)
-        # print(f"for {mapper.input}-to-{mapper.output}, possible ranges are:")
-        # print(ranges)
-    ranges.sort(key=lambda x: x.range_start)
-    print("min value:")
-    print(ranges[0].range_start)
+        print(f"for {mapper.input}-to-{mapper.output}, possible ranges are:")
+        ranges.sort(key=lambda x: x.range_start)
+        print(ranges)
+    min_value = ranges[0].range_start
+    print("min value: ", min_value)
+    return min_value
 
 
 if __name__ == "__main__":
-    main_part_two(INPUT_FILE_PATH)
+    brute_part_two(TEST_INPUT_FILE_PATH)
+    main_part_two(TEST_INPUT_FILE_PATH)

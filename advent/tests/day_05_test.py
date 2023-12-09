@@ -20,7 +20,8 @@ from advent.solutions.day_05 import (
     main_part_one,
     Mapper,
     FunctionRange,
-    get_mapper_sequence
+    get_mapper_sequence,
+    main_part_two
 )
 
 
@@ -51,7 +52,7 @@ class TestComputeOutputRanges:
         mapper = Mapper(
             input="foo",
             output="bar",
-            function_ranges=[mapping_range,]
+            mapping_ranges=[mapping_range,]
         )
         output_ranges = mapper.compute_output_ranges([input_range,])
         assert len(output_ranges) == 1
@@ -86,7 +87,7 @@ class TestComputeOutputRanges:
         mapper = Mapper(
             input="foo",
             output="bar",
-            function_ranges=[first_mapping_range, second_mapping_range]
+            mapping_ranges=[first_mapping_range, second_mapping_range]
         )
         output_ranges = mapper.compute_output_ranges([input_range,])
         assert len(output_ranges) == 2
@@ -129,7 +130,7 @@ class TestComputeOutputRanges:
         mapper = Mapper(
             input="foo",
             output="bar",
-            function_ranges=[first_mapping_range, second_mapping_range]
+            mapping_ranges=[first_mapping_range, second_mapping_range]
         )
         output_ranges = mapper.compute_output_ranges([input_range,])
         assert len(output_ranges) == 3
@@ -154,53 +155,32 @@ class TestComputeOutputRanges:
         )
 
     @staticmethod
-    def test_input_range_ends_after_last_mapping_range():
-        """
-        Test scenario where the input range ends after the end of the 
-        last mapping range. In this case, that last part of the input
-        (the 'overhang') should go through unmapped (meaning 'mapped'
-        through f(x)=x).
-        """
-        first_mapping_range = FunctionRange(
-            range_start=7,
-            range_end=11,
-            offset=50
-        )
-        second_mapping_range = FunctionRange(
-            range_start=11,
-            range_end=53,
-            offset=-11
-        )
+    def test_starts_in_range_ends_outside_any_range():
         input_range = FunctionRange(
-            range_start=9,
-            range_end=60,
-            offset=5
-        )
-        mapper = Mapper(
-            input="foo",
-            output="bar",
-            function_ranges=[first_mapping_range, second_mapping_range]
-        )
-        output_ranges = mapper.compute_output_ranges([input_range,])
-        assert len(output_ranges) == 3
-        first_output_range = output_ranges[0]
-        assert first_output_range == FunctionRange(
-            range_start=59,
-            range_end=61,
-            offset=50
-        )
-        second_output_range = output_ranges[1]
-        assert second_output_range == FunctionRange(
-            range_start=0,
-            range_end=42,
-            offset=-11
-        )
-        third_output_range = output_ranges[2]
-        assert third_output_range == FunctionRange(
-            range_start=53,
-            range_end=60,
+            range_start=57,
+            range_end=69,
             offset=0
         )
+        # same as test fertilizer-to-water map
+        first_mapping_range = FunctionRange(0, 6, 42)
+        second_mapping_range = FunctionRange(7, 1, 50)
+        third_mapping_range = FunctionRange(11, 52, -11)
+        fourth_mapping_range = FunctionRange(53, 60, -4)
+        mapping_ranges = [
+            first_mapping_range,
+            second_mapping_range,
+            third_mapping_range,
+            fourth_mapping_range
+        ]
+        mapper = Mapper("foo", "bar", mapping_ranges)
+        input_range = FunctionRange(57, 69, 0)
+        output_ranges = mapper.compute_output_ranges([input_range,])
+        assert len(output_ranges) == 2
+        first_output_range = output_ranges[0]
+        second_output_range = output_ranges[1]
+        assert first_output_range == FunctionRange(53, 56, -4)
+        assert second_output_range == FunctionRange(61, 69, 0)
+
 
 
 
@@ -213,7 +193,7 @@ def test_get_mapper_sequence():
     mappers = get_mapper_sequence(map_description)
     assert len(mappers) == 1
     seed_to_soil_mapper = mappers[0]
-    mapping_ranges = seed_to_soil_mapper.function_ranges
+    mapping_ranges = seed_to_soil_mapper.mapping_ranges
     assert len(mapping_ranges) == 2
     first_mapping_range = mapping_ranges[0]
     assert first_mapping_range == FunctionRange(
@@ -230,8 +210,6 @@ def test_get_mapper_sequence():
 
 
 
-def test_get_mappers_and_compute_output_ranges():
-    """
-    
-    """
-    pass
+def test_main_part_two():
+    assert main_part_two(TEST_INPUT_FILE_PATH) == 46
+    assert main_part_two() == 77435348
