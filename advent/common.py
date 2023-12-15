@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import re
 from typing import Generator
 
 
@@ -73,3 +74,24 @@ def find_number_beginning(input: str, end_index: int) -> int:
     while input[end_index - 1].isdigit():
         end_index -= 1
     return end_index
+
+
+
+def extract_numbers(string: str) -> list[int | float]:
+    """
+    Extract all the numbers in a string, return as list of ints and floats
+    """
+    pattern = r'-?\d+\.?\d*'
+    numbers = re.findall(pattern, string)
+    numbers = [float(num) if '.' in num else int(num) for num in numbers]
+    return numbers
+
+
+def extract_to_single_number(string: str) -> int:
+    """
+    Extract all the numbers in a string into one single number concatenated.
+    """
+    pattern = r'\d+'
+    numbers = re.findall(pattern, string)
+    combined_number = int(''.join(numbers))
+    return combined_number

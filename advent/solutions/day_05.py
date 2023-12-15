@@ -6,7 +6,7 @@ So if we have f(x) = x + 2 act on, let' say, 50-97, and the next function
 g(x) = x - 48 acts on a range of length two, immediately after the end of f(x)
 range, then that would be represented as 98-99. The end of one range and 
 the start of the next range ARE NEVER THE SAME NUMBER.
-Ranges which immediately follow one another have a differene of 1.
+Ranges which immediately follow one another have a difference of 1.
 """
 from __future__ import annotations
 
